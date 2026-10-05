@@ -56,48 +56,63 @@ theme_override_constants/margin_top = 48
 theme_override_constants/margin_right = 56
 theme_override_constants/margin_bottom = 56
 
-[node name="Root" type="VBoxContainer" parent="Margin"]
+[node name="ClockScreen" type="VBoxContainer" parent="Margin"]
+unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 28
 
-[node name="Title" type="Label" parent="Margin/Root"]
+[node name="TopBar" type="HBoxContainer" parent="Margin/ClockScreen"]
 layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Title" type="Label" parent="Margin/ClockScreen/TopBar"]
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.901961, 0.925490, 0.968627, 1)
 theme_override_font_sizes/font_size = 56
 text = "倍速時計盤"
-horizontal_alignment = 1
+vertical_alignment = 1
 
-[node name="FaceWrap" type="AspectRatioContainer" parent="Margin/Root"]
+[node name="SettingsButton" type="Button" parent="Margin/ClockScreen/TopBar"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(132, 88)
+layout_mode = 2
+focus_mode = 0
+theme_override_font_sizes/font_size = 34
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
+text = "設定"
+
+[node name="FaceWrap" type="AspectRatioContainer" parent="Margin/ClockScreen"]
 layout_mode = 2
 size_flags_vertical = 3
 ratio = 1.0
 stretch_mode = 2
 
-[node name="ClockFace" type="Control" parent="Margin/Root/FaceWrap"]
+[node name="ClockFace" type="Control" parent="Margin/ClockScreen/FaceWrap"]
 unique_name_in_owner = true
 layout_mode = 2
 script = ExtResource("2_face")
 
-[node name="Digital" type="PanelContainer" parent="Margin/Root"]
+[node name="Digital" type="PanelContainer" parent="Margin/ClockScreen"]
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 
-[node name="Box" type="VBoxContainer" parent="Margin/Root/Digital"]
+[node name="Box" type="VBoxContainer" parent="Margin/ClockScreen/Digital"]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="Caption" type="Label" parent="Margin/Root/Digital/Box"]
+[node name="Caption" type="Label" parent="Margin/ClockScreen/Digital/Box"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.529412, 0.576471, 0.658824, 1)
 theme_override_font_sizes/font_size = 38
 text = "拡張時刻"
 
-[node name="ScaledRow" type="HBoxContainer" parent="Margin/Root/Digital/Box"]
+[node name="ScaledRow" type="HBoxContainer" parent="Margin/ClockScreen/Digital/Box"]
 layout_mode = 2
 theme_override_constants/separation = 20
 alignment = 1
 
-[node name="ScaledTime" type="Label" parent="Margin/Root/Digital/Box/ScaledRow"]
+[node name="ScaledTime" type="Label" parent="Margin/ClockScreen/Digital/Box/ScaledRow"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.945098, 0.964706, 1, 1)
@@ -105,7 +120,7 @@ theme_override_font_sizes/font_size = 124
 text = "00:00:00"
 vertical_alignment = 1
 
-[node name="DayLength" type="Label" parent="Margin/Root/Digital/Box/ScaledRow"]
+[node name="DayLength" type="Label" parent="Margin/ClockScreen/Digital/Box/ScaledRow"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.529412, 0.576471, 0.658824, 1)
@@ -113,7 +128,7 @@ theme_override_font_sizes/font_size = 48
 text = "/ 24h"
 vertical_alignment = 2
 
-[node name="HalfLabel" type="Label" parent="Margin/Root/Digital/Box/ScaledRow"]
+[node name="HalfLabel" type="Label" parent="Margin/ClockScreen/Digital/Box/ScaledRow"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.290196, 0.639216, 1, 1)
@@ -121,33 +136,33 @@ theme_override_font_sizes/font_size = 52
 text = "前半"
 vertical_alignment = 2
 
-[node name="RealRow" type="HBoxContainer" parent="Margin/Root/Digital/Box"]
+[node name="RealRow" type="HBoxContainer" parent="Margin/ClockScreen/Digital/Box"]
 layout_mode = 2
 theme_override_constants/separation = 18
 
-[node name="RealCaption" type="Label" parent="Margin/Root/Digital/Box/RealRow"]
+[node name="RealCaption" type="Label" parent="Margin/ClockScreen/Digital/Box/RealRow"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.529412, 0.576471, 0.658824, 1)
 theme_override_font_sizes/font_size = 38
 text = "実時刻"
 vertical_alignment = 1
 
-[node name="RealTime" type="Label" parent="Margin/Root/Digital/Box/RealRow"]
+[node name="RealTime" type="Label" parent="Margin/ClockScreen/Digital/Box/RealRow"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.741176, 0.780392, 0.843137, 1)
 theme_override_font_sizes/font_size = 54
 text = "00:00:00"
 
-[node name="Info" type="PanelContainer" parent="Margin/Root"]
+[node name="Info" type="PanelContainer" parent="Margin/ClockScreen"]
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 
-[node name="Box" type="VBoxContainer" parent="Margin/Root/Info"]
+[node name="Box" type="VBoxContainer" parent="Margin/ClockScreen/Info"]
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="InfoDay" type="Label" parent="Margin/Root/Info/Box"]
+[node name="InfoDay" type="Label" parent="Margin/ClockScreen/Info/Box"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.823529, 0.858824, 0.925490, 1)
@@ -155,7 +170,7 @@ theme_override_font_sizes/font_size = 40
 text = "倍率 ×1.0 ／ 1日 = 24時間 ／ 文字盤1周 = 12時間"
 autowrap_mode = 3
 
-[node name="InfoHour" type="Label" parent="Margin/Root/Info/Box"]
+[node name="InfoHour" type="Label" parent="Margin/ClockScreen/Info/Box"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.529412, 0.576471, 0.658824, 1)
@@ -163,11 +178,49 @@ theme_override_font_sizes/font_size = 40
 text = "拡張時刻の1時間 = 実時間 60分"
 autowrap_mode = 3
 
-[node name="MultRow" type="HBoxContainer" parent="Margin/Root"]
+[node name="SettingsScreen" type="VBoxContainer" parent="Margin"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 36
+
+[node name="TopBar" type="HBoxContainer" parent="Margin/SettingsScreen"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="SettingsTitle" type="Label" parent="Margin/SettingsScreen/TopBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.901961, 0.925490, 0.968627, 1)
+theme_override_font_sizes/font_size = 56
+text = "設定"
+vertical_alignment = 1
+
+[node name="BackButton" type="Button" parent="Margin/SettingsScreen/TopBar"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(132, 88)
+layout_mode = 2
+focus_mode = 0
+theme_override_font_sizes/font_size = 34
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
+text = "← 戻る"
+
+[node name="Spacer" type="Control" parent="Margin/SettingsScreen"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="MultCaption" type="Label" parent="Margin/SettingsScreen"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.529412, 0.576471, 0.658824, 1)
+theme_override_font_sizes/font_size = 38
+text = "倍率"
+horizontal_alignment = 1
+
+[node name="MultRow" type="HBoxContainer" parent="Margin/SettingsScreen"]
 layout_mode = 2
 theme_override_constants/separation = 24
 
-[node name="MinusButton" type="Button" parent="Margin/Root/MultRow"]
+[node name="MinusButton" type="Button" parent="Margin/SettingsScreen/MultRow"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(200, 140)
 layout_mode = 2
@@ -176,7 +229,7 @@ theme_override_font_sizes/font_size = 72
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
 text = "−"
 
-[node name="MultValue" type="Label" parent="Margin/Root/MultRow"]
+[node name="MultValue" type="Label" parent="Margin/SettingsScreen/MultRow"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
@@ -186,7 +239,7 @@ text = "×1.0"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="PlusButton" type="Button" parent="Margin/Root/MultRow"]
+[node name="PlusButton" type="Button" parent="Margin/SettingsScreen/MultRow"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(200, 140)
 layout_mode = 2
@@ -195,7 +248,21 @@ theme_override_font_sizes/font_size = 72
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
 text = "＋"
 
-[node name="Chips" type="HBoxContainer" parent="Margin/Root"]
+[node name="Chips" type="HBoxContainer" parent="Margin/SettingsScreen"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 14
+
+[node name="Spacer2" type="Control" parent="Margin/SettingsScreen"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="TrayHint" type="Label" parent="Margin/SettingsScreen"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(0.529412, 0.576471, 0.658824, 1)
+theme_override_font_sizes/font_size = 32
+text = ""
+horizontal_alignment = 1
+autowrap_mode = 3

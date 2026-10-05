@@ -48,16 +48,43 @@ N は 0.5 刻みなので `24N`・`12N`・`60/N` はすべて整数になり、�
 - 倍率・1日の長さ・文字盤1周・拡張1時間が実時間で何分か
 - 外周リング: 1周 = 1日。前半を青、後半を橙で塗り分け、経過ぶんを濃く塗る
 
+### 画面構成（時計画面 / 設定画面）
+常駐表示を邪魔しないよう、画面を2つに分けている（`Main.tscn` の `ClockScreen` /
+`SettingsScreen`、`.visible` の排他切り替えのみで遷移する。シーン遷移ではない）。
+
+| 画面 | 内容 | 入り方 |
+|---|---|---|
+| ClockScreen（既定） | タイトル・時計盤・デジタル表示・情報パネルのみ。倍率操作UIは出さない | 起動時、または設定画面から「← 戻る」 |
+| SettingsScreen | 倍率の ±ボタン・チップ・（Windowsでは）トレイ常駐の案内文 | ClockScreenの「設定」ボタン、Escキー、トレイメニューの「設定を開く」 |
+
+### Windowsでの常駐（タスクトレイ）
+`scripts/tray_controller.gd`（`TrayController`、RefCounted）が担当。
+`DisplayServer.has_feature(DisplayServer.FEATURE_STATUS_INDICATOR)` で機能の有無を
+実行時に判定し、**対応していないプラットフォームでは何もしない**ので、
+「閉じたら終了」という通常のウィンドウアプリとして動く(iOSやLinuxの一部構成でも安全)。
+
+対応している場合（Windows）:
+- 閉じるボタン（×）はアプリを終了せず、ウィンドウを隠してタスクトレイに格納する
+  （`SceneTree.auto_accept_quit = false` にした上で `Window.close_requested` を捕まえている）
+- タスクトレイアイコンのクリックでウィンドウの表示/非表示を切り替える
+- トレイアイコンの右クリックメニュー（`NativeMenu` 経由、`FEATURE_POPUP_MENU` 判定つき）:
+  「表示 / 非表示」「設定を開く」「終了」
+- トレイアイコンのツールチップに現在の倍率を表示する（例: `倍速時計盤 ×2.0`）
+- 完全終了は必ずトレイメニューの「終了」から（`get_tree().quit()`）。
+  バックグラウンドでは `_process` が毎フレーム回り続けるので、トレイに格納していても
+  拡張時刻はずれずに進み続ける
+
 ---
 
 ## 2. 構成
 
 ```
-scripts/scaled_clock.gd   時刻計算のロジック（static関数のみ。描画・シーンに非依存）
-scripts/settings_store.gd 倍率の保存/読み込み（user://settings.cfg）
-scripts/clock_face.gd     文字盤と針の _draw() 描画（Control）
-scripts/main.gd           UIの配線（デジタル表示・倍率ボタン）
-scenes/Main.tscn          レイアウト
+scripts/scaled_clock.gd    時刻計算のロジック（static関数のみ。描画・シーンに非依存）
+scripts/settings_store.gd  倍率の保存/読み込み（user://settings.cfg）
+scripts/clock_face.gd      文字盤と針の _draw() 描画（Control）
+scripts/tray_controller.gd Windowsタスクトレイ常駐の制御（非対応環境では無害に何もしない）
+scripts/main.gd            UIの配線（画面切り替え・デジタル表示・倍率ボタン・トレイ配線）
+scenes/Main.tscn           レイアウト（ClockScreen / SettingsScreen）
 tests/test_scaled_clock.gd  ScaledClock の単体テスト
 tests/run_tests.sh          テスト実行スクリプト
 ```
@@ -145,6 +172,12 @@ tests/run_tests.sh
   自動的に追従はする）。日本では起きない。
 - **フォント**: Noto Sans JP（約9MB）を同梱している。iOSのアプリサイズが気になる場合は
   サブセット化を検討する。
+- **タスクトレイ常駐（`tray_controller.gd`）**: iOSにはタスクトレイという概念が無いので、
+  `DisplayServer.has_feature(FEATURE_STATUS_INDICATOR)` が false になり自動的に無効化される。
+  これ自体はコード変更不要だが、「閉じるボタンで隠す」ではなくモバイルのライフサイクル
+  （バックグラウンド/フォアグラウンド遷移）に合わせた挙動になっているか実機で確認すること。
+  必要なら `NOTIFICATION_APPLICATION_PAUSED` / `NOTIFICATION_APPLICATION_RESUMED` を使う
+  形に差し替える。
 
 ---
 

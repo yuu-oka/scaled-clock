@@ -14,6 +14,10 @@
 実世界の「その日の0:00からの経過秒」を N 倍した時刻を表示する。
 実0:00で拡張時刻も0:00に戻るので、1日の区切りは実世界とずれない。
 
+画面は「時計盤のみ」と「倍率を変える設定画面」の2つに分かれていて、設定ボタン(または
+トレイメニューの「設定を開く」)で行き来する。Windowsではタスクトレイに常駐でき、閉じる
+ボタンは終了せずトレイに格納される(トレイ機能が無い環境では通常どおり閉じたら終了する)。
+
 ## 動かす
 
 Godot 4.7.1 でプロジェクトを開いて実行する。
@@ -30,7 +34,8 @@ godot --headless --path . --export-release "Windows" build/windows/ScaledClock.e
 
 - `scripts/scaled_clock.gd` — 時刻計算（描画・シーンに非依存／単体テスト対象）
 - `scripts/clock_face.gd` — 文字盤と針の `_draw()` ベクター描画
-- `scripts/main.gd` — UI配線
+- `scripts/tray_controller.gd` — Windowsタスクトレイ常駐の制御
+- `scripts/main.gd` — 画面切り替え・UI配線
 - `scripts/settings_store.gd` — 倍率の永続化（`user://settings.cfg`）
 
 仕様・iOS移植時の注意は [CLAUDE.md](CLAUDE.md) を参照。
