@@ -28,6 +28,9 @@ func _initialize() -> void:
 	test_halves()
 	test_scaled_roundtrip()
 	test_state_never_exceeds_day_length()
+	test_full_day_face_mode_one_turn_per_day()
+	test_full_day_face_mode_dial_size()
+	test_face_mode_default_is_half_day()
 
 	print("")
 	if _failed == 0:
@@ -228,3 +231,66 @@ func test_state_never_exceeds_day_length() -> void:
 			"N=%.1f の最大の時は %d (got %d)" % [n, int(Clock.day_hours(n)) - 1, last["scaled_hour"]]
 		)
 		_ok(last["day_progress"] < 1.0, "N=%.1f 進捗は1未満" % n)
+
+
+## FaceMode.FULL_DAY(1日で時計盤1周)では、文字盤1周の時間数が day_hours と一致し、
+## 時針はどの倍率でも必ずちょうど1日1周になる。
+func test_full_day_face_mode_one_turn_per_day() -> void:
+	print("FULL_DAY: 文字盤1周 = 1日の長さ、時針は1日1周")
+	for n in Clock.multiplier_choices():
+		var period := Clock.hour_hand_period(n, Clock.FaceMode.FULL_DAY)
+		_eq_f(period, Clock.scaled_day_seconds(n), "N=%.1f FULL_DAYの時針周期=1日" % n)
+		var turns := Clock.scaled_day_seconds(n) / period
+		_eq_f(turns, 1.0, "N=%.1f FULL_DAYの時針回転数" % n, 0.00001)
+
+		# 実12:00(=1日のちょうど半分)では、時針は文字盤のちょうど半周(180度)
+		var half := Clock.state(12.0 * H, n, Clock.FaceMode.FULL_DAY)
+		_eq_f(half["hour_angle"], PI, "N=%.1f FULL_DAY 実12:00で時針は半周" % n, 0.0001)
+
+		# 実0:00(=1日の開始)では、時針は12時方向(角度0)
+		var start := Clock.state(0.0, n, Clock.FaceMode.FULL_DAY)
+		_eq_f(start["hour_angle"], 0.0, "N=%.1f FULL_DAY 実0:00で時針は0度" % n)
+
+
+## FULL_DAYの文字盤の数字は 1〜24N(day_hoursと同じ)になる。
+func test_full_day_face_mode_dial_size() -> void:
+	print("FULL_DAY: 文字盤の数字は1〜24N")
+	var cases := {
+		0.5: 12,
+		1.0: 24,
+		1.5: 36,
+		2.0: 48,
+		2.5: 60,
+		3.0: 72,
+	}
+	for n in cases:
+		var want: int = cases[n]
+		_eq_i(
+			Clock.dial_number_count(n, Clock.FaceMode.FULL_DAY), want,
+			"N=%.1f FULL_DAYの数字の個数" % n
+		)
+		_eq_f(
+			Clock.dial_hours(n, Clock.FaceMode.FULL_DAY), Clock.day_hours(n),
+			"N=%.1f FULL_DAYの文字盤1周=1日の長さ" % n
+		)
+
+
+## face_mode を省略すると既定の HALF_DAY(従来どおり1日2周)になる。
+## 既存の完成条件(N=2で実12:00に拡張24:00・時針1周)が引き続き壊れていないことの確認を兼ねる。
+func test_face_mode_default_is_half_day() -> void:
+	print("face_mode省略時はHALF_DAYが既定")
+	for n in Clock.multiplier_choices():
+		_eq_f(
+			Clock.dial_hours(n), Clock.dial_hours(n, Clock.FaceMode.HALF_DAY),
+			"N=%.1f dial_hoursの既定値" % n
+		)
+		_eq_i(
+			Clock.dial_number_count(n), Clock.dial_number_count(n, Clock.FaceMode.HALF_DAY),
+			"N=%.1f dial_number_countの既定値" % n
+		)
+		var default_state := Clock.state(12.0 * H, n)
+		var half_day_state := Clock.state(12.0 * H, n, Clock.FaceMode.HALF_DAY)
+		_eq_f(
+			default_state["hour_angle"], half_day_state["hour_angle"],
+			"N=%.1f stateの既定face_mode" % n
+		)

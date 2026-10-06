@@ -40,6 +40,9 @@ const APP_TITLE := "倍速時計盤"
 @onready var _settings_button: Button = %SettingsButton
 @onready var _back_button: Button = %BackButton
 @onready var _tray_hint: Label = %TrayHint
+@onready var _face_wrap: Control = %FaceWrap
+@onready var _face_visibility_button: Button = %FaceVisibilityButton
+@onready var _face_mode_button: Button = %FaceModeButton
 
 var _chip_buttons: Array[Button] = []
 var _tray := Tray.new()
@@ -51,7 +54,11 @@ func _ready() -> void:
 	_plus.pressed.connect(_on_step.bind(Clock.MULTIPLIER_STEP))
 	_settings_button.pressed.connect(_show_settings.bind(true))
 	_back_button.pressed.connect(_show_settings.bind(false))
+	_face_visibility_button.pressed.connect(_on_toggle_face_visibility)
+	_face_mode_button.pressed.connect(_on_toggle_face_mode)
 	_apply_multiplier(Store.load_multiplier(1.0), false)
+	_apply_show_face(Store.load_show_face(true), false)
+	_apply_face_mode(Store.load_face_mode(Clock.FaceMode.HALF_DAY), false)
 	_show_settings(false)
 	_setup_tray()
 
@@ -173,6 +180,41 @@ func _apply_multiplier(value: float, persist: bool) -> void:
 	if persist:
 		Store.save_multiplier(n)
 	_tray.set_tooltip("%s ×%.1f" % [APP_TITLE, n])
+	_refresh_readout()
+
+
+## ------------------------------------------------------------- 文字盤の表示設定
+
+func _on_toggle_face_visibility() -> void:
+	_apply_show_face(not _face_wrap.visible, true)
+
+
+## 文字盤(アナログ表示)の表示/非表示を切り替える。非表示でもデジタル表示は
+## 動き続ける(ClockFaceの_processは可視状態に関係なく回り続けるため)。
+func _apply_show_face(show_face: bool, persist: bool) -> void:
+	_face_wrap.visible = show_face
+	_face_visibility_button.text = "表示中" if show_face else "非表示中"
+	if persist:
+		Store.save_show_face(show_face)
+
+
+func _on_toggle_face_mode() -> void:
+	var current := _face.get_face_mode()
+	var next := (
+		Clock.FaceMode.FULL_DAY if current == Clock.FaceMode.HALF_DAY
+		else Clock.FaceMode.HALF_DAY
+	)
+	_apply_face_mode(next, true)
+
+
+## 文字盤の表示方式を切り替える。
+## HALF_DAY: 文字盤1周=12N時間、1日2周(AM/PM表示)。
+## FULL_DAY: 文字盤1周=24N時間、1日ちょうど1周。
+func _apply_face_mode(mode: int, persist: bool) -> void:
+	_face.set_face_mode(mode)
+	_face_mode_button.text = "AM/PM表示" if mode == Clock.FaceMode.HALF_DAY else "1日1周表示"
+	if persist:
+		Store.save_face_mode(mode)
 	_refresh_readout()
 
 

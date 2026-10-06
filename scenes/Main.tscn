@@ -83,6 +83,7 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
 text = "設定"
 
 [node name="FaceWrap" type="AspectRatioContainer" parent="Margin/ClockScreen"]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
 ratio = 1.0
@@ -252,6 +253,55 @@ text = "＋"
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 14
+
+[node name="DisplayCaption" type="Label" parent="Margin/SettingsScreen"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.529412, 0.576471, 0.658824, 1)
+theme_override_font_sizes/font_size = 38
+text = "表示"
+horizontal_alignment = 1
+
+[node name="FaceVisibilityRow" type="HBoxContainer" parent="Margin/SettingsScreen"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="FaceVisibilityLabel" type="Label" parent="Margin/SettingsScreen/FaceVisibilityRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.823529, 0.858824, 0.925490, 1)
+theme_override_font_sizes/font_size = 36
+text = "文字盤"
+vertical_alignment = 1
+
+[node name="FaceVisibilityButton" type="Button" parent="Margin/SettingsScreen/FaceVisibilityRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(240, 88)
+layout_mode = 2
+focus_mode = 0
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
+text = "表示中"
+
+[node name="FaceModeRow" type="HBoxContainer" parent="Margin/SettingsScreen"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="FaceModeLabel" type="Label" parent="Margin/SettingsScreen/FaceModeRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.823529, 0.858824, 0.925490, 1)
+theme_override_font_sizes/font_size = 36
+text = "表示方式"
+vertical_alignment = 1
+
+[node name="FaceModeButton" type="Button" parent="Margin/SettingsScreen/FaceModeRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(240, 88)
+layout_mode = 2
+focus_mode = 0
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
+text = "AM/PM表示"
 
 [node name="Spacer2" type="Control" parent="Margin/SettingsScreen"]
 layout_mode = 2

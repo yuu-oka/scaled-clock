@@ -27,12 +27,16 @@ const COL_RING_SECOND := Color("#ad7d49")
 const HAND_EASE_TIME := 0.55
 ## 文字盤の数字が密集しすぎないよう、目盛りの総数はこの値以下に抑える
 const MAX_MINOR_TICKS := 64
+## 文字盤に出す数字の最大個数。これを超える場合は間引いて読みやすさを保つ
+## (例: FULL_DAYモードでN=3なら1〜72になるが、全部は出さず2個おきにする)
+const MAX_LABELED_NUMBERS := 36
 ## 文字盤の数字のウェイト。小さいサイズでも潰れないよう少し太らせる。
 const NUMBER_WEIGHT := 600.0
 
 var _multiplier := 1.0
+var _face_mode := Clock.FaceMode.HALF_DAY
 var _state: Dictionary = {}
-## 倍率変更時の「見た目の角度 - 本来の角度」。0へ減衰させることで針が自然に動く。
+## 倍率/表示方式の変更時の「見た目の角度 - 本来の角度」。0へ減衰させることで針が自然に動く。
 var _angle_offset := [0.0, 0.0, 0.0]
 var _offset_decay := 0.0
 ## 文字盤の数字用(同じttfをウェイト違いで使うだけ。フォントは追加しない)
@@ -43,18 +47,26 @@ func _ready() -> void:
 	_number_font = FontVariation.new()
 	_number_font.base_font = FONT
 	_number_font.variation_opentype = {"wght": NUMBER_WEIGHT}
-	_state = Clock.state(Clock.real_seconds_now(), _multiplier)
+	_state = _compute_state()
 
 
 func _process(delta: float) -> void:
 	if _offset_decay > 0.0:
 		_offset_decay = maxf(_offset_decay - delta / HAND_EASE_TIME, 0.0)
-	_state = Clock.state(Clock.real_seconds_now(), _multiplier)
+	_state = _compute_state()
 	queue_redraw()
+
+
+func _compute_state() -> Dictionary:
+	return Clock.state(Clock.real_seconds_now(), _multiplier, _face_mode)
 
 
 func get_multiplier() -> float:
 	return _multiplier
+
+
+func get_face_mode() -> int:
+	return _face_mode
 
 
 ## 現在の表示状態(デジタル表示などに使う)。
@@ -67,10 +79,25 @@ func set_multiplier(value: float) -> void:
 	var next: float = Clock.clamp_multiplier(value)
 	if is_equal_approx(next, _multiplier):
 		return
+	var before: Dictionary = _compute_state()
+	_multiplier = next
+	_apply_transition(before)
 
-	var real_sec: float = Clock.real_seconds_now()
-	var before: Dictionary = Clock.state(real_sec, _multiplier)
-	var after: Dictionary = Clock.state(real_sec, next)
+
+## 文字盤の表示方式(AM/PM表示 / 1日1周表示)を切り替える。
+## 倍率変更と同じく、針は現在位置から滑らかに移動する。
+func set_face_mode(mode: int) -> void:
+	if mode == _face_mode:
+		return
+	var before: Dictionary = _compute_state()
+	_face_mode = mode
+	_apply_transition(before)
+
+
+## before(変更前)の見た目と、変更後の新しい状態との差分を角度オフセットとして
+## 積み立て、針がそこから自然に減衰しながら新しい位置へ移動するようにする。
+func _apply_transition(before: Dictionary) -> void:
+	var after: Dictionary = _compute_state()
 	var keys := ["hour_angle", "minute_angle", "second_angle"]
 	var weight := _offset_weight()
 	for i in keys.size():
@@ -79,7 +106,6 @@ func set_multiplier(value: float) -> void:
 		_angle_offset[i] = wrapf(shown - after[keys[i]], -PI, PI)
 
 	_offset_decay = 1.0
-	_multiplier = next
 	_state = after
 	queue_redraw()
 
@@ -111,6 +137,15 @@ static func _minor_subdivisions(number_count: int) -> int:
 		if number_count * sub <= MAX_MINOR_TICKS:
 			return sub
 	return 1
+
+
+## 数字を何個おきに出すか(1なら全部表示)。count は 12N/24N(Nは0.5刻み)なので
+## 常に6の倍数になり、小さい約数から順に試せばきれいに割り切れる。
+static func _label_step(count: int) -> int:
+	for step in [1, 2, 3, 4, 6, 8, 12]:
+		if count % step == 0 and count / step <= MAX_LABELED_NUMBERS:
+			return step
+	return maxi(1, int(ceil(float(count) / MAX_LABELED_NUMBERS)))
 
 
 func _draw() -> void:
@@ -201,10 +236,14 @@ func _draw_ticks(center: Vector2, plate_r: float) -> void:
 func _draw_numbers(center: Vector2, plate_r: float) -> void:
 	var font: Font = _number_font if _number_font != null else FONT
 	var count: int = _state["dial_number_count"]
+	# 数字が多すぎる文字盤(FULL_DAYモードなど)は間引いて読みやすさを保つ。
+	# 目盛り自体(_draw_ticks)は間引かず全時間ぶん描く。
+	var step := _label_step(count)
+	var labeled_count := count / step
 	# 目盛りのすぐ内側まで数字を出すと、1つあたりの弧が広がって大きな字を置ける
 	var number_r := plate_r * 0.805
-	# 数字1つに割り当てられる弧の長さ。倍率が上がるほど狭くなる。
-	var slot := TAU * number_r / float(count)
+	# 数字1つに割り当てられる弧の長さ。間引いた場合はその分広く使える。
+	var slot := TAU * number_r / float(labeled_count)
 
 	# 一番幅の広い表示(=最大の数字)を基準にフォントサイズを決める
 	var widest := str(count)
@@ -213,7 +252,8 @@ func _draw_numbers(center: Vector2, plate_r: float) -> void:
 	var by_slot := 100.0 * (slot * 0.82) / maxf(probe, 1.0)
 	var font_size := clampf(minf(plate_r * 0.155, by_slot), 7.0, plate_r)
 
-	for i in count:
+	var i := 0
+	while i < count:
 		var label := str(count if i == 0 else i)
 		var a := TAU * float(i) / float(count)
 		var px := int(font_size)
@@ -225,6 +265,7 @@ func _draw_numbers(center: Vector2, plate_r: float) -> void:
 			target.y + (font.get_ascent(px) - font.get_descent(px)) * 0.5
 		)
 		draw_string(font, pos, label, HORIZONTAL_ALIGNMENT_LEFT, -1, px, COL_NUMBER)
+		i += step
 
 
 func _draw_hands(center: Vector2, plate_r: float) -> void:

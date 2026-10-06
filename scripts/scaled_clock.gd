@@ -13,12 +13,17 @@ class_name ScaledClock
 ##
 ## 定義:
 ##   1日            = 24 * N 時間 (拡張時刻)
-##   文字盤1周      = 12 * N 時間 (拡張時刻) → 1日で時針は必ず2周
 ##   拡張時刻の1時間 = 実時間 60 / N 分
+##
+## 文字盤の表示方式(FaceMode)は2通り選べる:
+##   HALF_DAY … 文字盤1周 = 12 * N 時間 → 1日で時針は2周(AM/PM表示。既定)
+##   FULL_DAY … 文字盤1周 = 24 * N 時間 → 1日で時針はちょうど1周(24時間表示)
 
 const MIN_MULTIPLIER := 0.5
 const MAX_MULTIPLIER := 3.0
 const MULTIPLIER_STEP := 0.5
+
+enum FaceMode { HALF_DAY, FULL_DAY }
 
 const REAL_DAY_SECONDS := 86400.0
 const SECONDS_PER_HOUR := 3600.0
@@ -48,14 +53,18 @@ static func day_hours(n: float) -> float:
 	return 24.0 * n
 
 
-## 文字盤1周の時間数(拡張時刻)。N=2 なら 24。
-static func dial_hours(n: float) -> float:
+## 文字盤1周の時間数(拡張時刻)。
+## HALF_DAY: N=2 なら 24(1日2周)。FULL_DAY: N=2 なら 48(1日1周、day_hoursと同じ)。
+static func dial_hours(n: float, face_mode: int = FaceMode.HALF_DAY) -> float:
+	if face_mode == FaceMode.FULL_DAY:
+		return day_hours(n)
 	return DIAL_HOURS_AT_X1 * n
 
 
-## 文字盤に並べる数字の個数(=最大の数字)。N=2 なら 24 (1〜24)。
-static func dial_number_count(n: float) -> int:
-	return int(roundf(dial_hours(n)))
+## 文字盤に並べる数字の個数(=最大の数字)。
+## HALF_DAY: N=2 なら 24(1〜24)。FULL_DAY: N=2 なら 48(1〜48)。
+static func dial_number_count(n: float, face_mode: int = FaceMode.HALF_DAY) -> int:
+	return int(roundf(dial_hours(n, face_mode)))
 
 
 ## 拡張時刻の1時間が実時間で何分か。N=2 なら 30。
@@ -69,8 +78,8 @@ static func scaled_day_seconds(n: float) -> float:
 
 
 ## 時針が1周するのに必要な拡張秒数。
-static func hour_hand_period(n: float) -> float:
-	return dial_hours(n) * SECONDS_PER_HOUR
+static func hour_hand_period(n: float, face_mode: int = FaceMode.HALF_DAY) -> float:
+	return dial_hours(n, face_mode) * SECONDS_PER_HOUR
 
 
 ## 実経過秒から拡張経過秒へ。
@@ -114,12 +123,13 @@ static func half_label(scaled_sec: float, n: float) -> String:
 
 
 ## 時計の全状態をまとめて返す。描画・UIはこれだけを見ればよい。
-static func state(real_sec: float, n: float) -> Dictionary:
+static func state(real_sec: float, n: float, face_mode: int = FaceMode.HALF_DAY) -> Dictionary:
 	var scaled_sec := to_scaled_seconds(real_sec, n)
 	var scaled_parts := split_scaled_time(scaled_sec)
 	var real_parts := split_scaled_time(real_sec)
 	return {
 		"multiplier": n,
+		"face_mode": face_mode,
 		"real_sec": real_sec,
 		"scaled_sec": scaled_sec,
 		"scaled_hour": scaled_parts["hour"],
@@ -132,14 +142,14 @@ static func state(real_sec: float, n: float) -> Dictionary:
 			real_parts["hour"], real_parts["minute"], real_parts["second"]
 		),
 		"day_hours": day_hours(n),
-		"dial_hours": dial_hours(n),
-		"dial_number_count": dial_number_count(n),
+		"dial_hours": dial_hours(n, face_mode),
+		"dial_number_count": dial_number_count(n, face_mode),
 		"real_minutes_per_scaled_hour": real_minutes_per_scaled_hour(n),
 		"day_progress": fposmod(scaled_sec, scaled_day_seconds(n)) / scaled_day_seconds(n),
 		"is_second_half": is_second_half(scaled_sec, n),
 		"half_label": half_label(scaled_sec, n),
 		# 12時方向=0、時計回り正のラジアン
-		"hour_angle": hand_angle(scaled_sec, hour_hand_period(n)),
+		"hour_angle": hand_angle(scaled_sec, hour_hand_period(n, face_mode)),
 		"minute_angle": hand_angle(scaled_sec, SECONDS_PER_HOUR),
 		"second_angle": hand_angle(scaled_sec, SECONDS_PER_MINUTE),
 	}
