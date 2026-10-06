@@ -83,7 +83,6 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
 text = "設定"
 
 [node name="FaceWrap" type="AspectRatioContainer" parent="Margin/ClockScreen"]
-unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
 ratio = 1.0
@@ -261,19 +260,19 @@ theme_override_font_sizes/font_size = 38
 text = "表示"
 horizontal_alignment = 1
 
-[node name="FaceVisibilityRow" type="HBoxContainer" parent="Margin/SettingsScreen"]
+[node name="NumbersVisibilityRow" type="HBoxContainer" parent="Margin/SettingsScreen"]
 layout_mode = 2
 theme_override_constants/separation = 16
 
-[node name="FaceVisibilityLabel" type="Label" parent="Margin/SettingsScreen/FaceVisibilityRow"]
+[node name="NumbersVisibilityLabel" type="Label" parent="Margin/SettingsScreen/NumbersVisibilityRow"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.823529, 0.858824, 0.925490, 1)
 theme_override_font_sizes/font_size = 36
-text = "文字盤"
+text = "文字盤の数字"
 vertical_alignment = 1
 
-[node name="FaceVisibilityButton" type="Button" parent="Margin/SettingsScreen/FaceVisibilityRow"]
+[node name="NumbersVisibilityButton" type="Button" parent="Margin/SettingsScreen/NumbersVisibilityRow"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(240, 88)
 layout_mode = 2

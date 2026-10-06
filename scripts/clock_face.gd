@@ -35,6 +35,9 @@ const NUMBER_WEIGHT := 600.0
 
 var _multiplier := 1.0
 var _face_mode := Clock.FaceMode.HALF_DAY
+## false なら文字盤の数字(1,2,3...)だけを描かない。盤面・目盛り・針・外周リングは
+## 影響を受けない(常に表示する)。
+var _show_numbers := true
 var _state: Dictionary = {}
 ## 倍率/表示方式の変更時の「見た目の角度 - 本来の角度」。0へ減衰させることで針が自然に動く。
 var _angle_offset := [0.0, 0.0, 0.0]
@@ -67,6 +70,20 @@ func get_multiplier() -> float:
 
 func get_face_mode() -> int:
 	return _face_mode
+
+
+func get_show_numbers() -> bool:
+	return _show_numbers
+
+
+## 文字盤の数字(1,2,3...)の表示/非表示を切り替える。盤面・目盛り・針・外周リングは
+## 常に表示されたまま(消えるのは数字だけ)。針のアニメーションとは無関係なので
+## 即座に反映する。
+func set_show_numbers(value: bool) -> void:
+	if value == _show_numbers:
+		return
+	_show_numbers = value
+	queue_redraw()
 
 
 ## 現在の表示状態(デジタル表示などに使う)。
@@ -165,7 +182,8 @@ func _draw() -> void:
 	draw_arc(center, plate_r, 0.0, TAU, 128, COL_PLATE_EDGE, maxf(radius * 0.008, 1.0), true)
 
 	_draw_ticks(center, plate_r)
-	_draw_numbers(center, plate_r)
+	if _show_numbers:
+		_draw_numbers(center, plate_r)
 	_draw_hands(center, plate_r)
 
 

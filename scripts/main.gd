@@ -40,8 +40,7 @@ const APP_TITLE := "倍速時計盤"
 @onready var _settings_button: Button = %SettingsButton
 @onready var _back_button: Button = %BackButton
 @onready var _tray_hint: Label = %TrayHint
-@onready var _face_wrap: Control = %FaceWrap
-@onready var _face_visibility_button: Button = %FaceVisibilityButton
+@onready var _numbers_button: Button = %NumbersVisibilityButton
 @onready var _face_mode_button: Button = %FaceModeButton
 
 var _chip_buttons: Array[Button] = []
@@ -54,10 +53,10 @@ func _ready() -> void:
 	_plus.pressed.connect(_on_step.bind(Clock.MULTIPLIER_STEP))
 	_settings_button.pressed.connect(_show_settings.bind(true))
 	_back_button.pressed.connect(_show_settings.bind(false))
-	_face_visibility_button.pressed.connect(_on_toggle_face_visibility)
+	_numbers_button.pressed.connect(_on_toggle_numbers_visibility)
 	_face_mode_button.pressed.connect(_on_toggle_face_mode)
 	_apply_multiplier(Store.load_multiplier(1.0), false)
-	_apply_show_face(Store.load_show_face(true), false)
+	_apply_show_numbers(Store.load_show_numbers(true), false)
 	_apply_face_mode(Store.load_face_mode(Clock.FaceMode.HALF_DAY), false)
 	_show_settings(false)
 	_setup_tray()
@@ -185,17 +184,17 @@ func _apply_multiplier(value: float, persist: bool) -> void:
 
 ## ------------------------------------------------------------- 文字盤の表示設定
 
-func _on_toggle_face_visibility() -> void:
-	_apply_show_face(not _face_wrap.visible, true)
+func _on_toggle_numbers_visibility() -> void:
+	_apply_show_numbers(not _face.get_show_numbers(), true)
 
 
-## 文字盤(アナログ表示)の表示/非表示を切り替える。非表示でもデジタル表示は
-## 動き続ける(ClockFaceの_processは可視状態に関係なく回り続けるため)。
-func _apply_show_face(show_face: bool, persist: bool) -> void:
-	_face_wrap.visible = show_face
-	_face_visibility_button.text = "表示中" if show_face else "非表示中"
+## 文字盤の数字(1,2,3...)だけの表示/非表示を切り替える。盤面・針・外周リングは
+## 常に表示されたまま消えない。
+func _apply_show_numbers(show_numbers: bool, persist: bool) -> void:
+	_face.set_show_numbers(show_numbers)
+	_numbers_button.text = "表示中" if show_numbers else "非表示中"
 	if persist:
-		Store.save_show_face(show_face)
+		Store.save_show_numbers(show_numbers)
 
 
 func _on_toggle_face_mode() -> void:
