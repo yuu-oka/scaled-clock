@@ -121,7 +121,27 @@ tests/run_tests.sh
 - `exclude_filter` で `addons/godot_mcp/*` を除外している
 - `application/modify_resources=false` にしてあるので **rcedit なしでエクスポートできる**
   （.exe にアイコンやバージョン情報を焼き込みたい場合のみ rcedit が必要）
-- 出力先 `build/` は .gitignore 済み
+- 出力先 `build/` は .gitignore 済み(配布物なのでリポジトリには含めない)
+
+### Web向けエクスポート(GitHub Pages / 動作確認用)
+
+ブラウザで手軽に見た目・挙動を確認できるよう、Webビルドも用意している。
+**配布目的ではなく確認用**(タスクトレイ常駐はブラウザには存在しないので無効化される)。
+
+```bash
+~/apps/godot/Godot_v4.7.1-stable_linux.x86_64 --headless --path . --export-release "Web" docs/index.html
+```
+
+- プリセット名は `Web`。出力先は `docs/`(GitHub Pagesが `main` ブランチの `/docs` を
+  配信するよう設定済み)。**ビルドしたら `docs/` の変更ごとコミット&pushが必要**
+  (Webビルドは `build/` と違い .gitignore 対象外)
+- Webブラウザは WebGL2 しか使えないので、`project.godot` で
+  `rendering/renderer/rendering_method.web="gl_compatibility"` を上書きしている
+  (デスクトップ/Windowsは引き続き `mobile` レンダラー)
+- `threads/*=false`(スレッド無効)にしてある。GitHub Pagesはレスポンスヘッダを
+  カスタマイズできず、マルチスレッドWebビルドに必要なCOOP/COEPヘッダを付けられないため
+- `TrayController` はWebでは `DisplayServer.has_feature(FEATURE_STATUS_INDICATOR)` が
+  falseになり自動的に無効化されるので、ブラウザでは普通の(閉じたら終了する)挙動になる
 
 ---
 
